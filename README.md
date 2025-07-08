@@ -61,10 +61,6 @@ Then open [http://localhost:8000/WEBAPP/index.html](http://localhost:8000/WEBAPP
 
 ---
 
-## Credits
-- UI & App by [0x70ea12A4E1208FaDeb0B4722852325bB9Bc119c6](https://sepolia.etherscan.io/address/0x70ea12A4E1208FaDeb0B4722852325bB9Bc119c6)
-
----
 
 ## License
 MIT 
