@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WEB3 M3SS3G3</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #F2E6EE 0%, #977DFF 100%);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .app-container {
+      display: flex;
+      flex: 1;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 320px;
+      background: #fff;
+      border-right: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+      z-index: 2;
+    }
+    .sidebar-header {
+      padding: 24px 20px 16px 20px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #6C47B6;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-header button {
+      background: #977DFF;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .sidebar-header button:hover {
+      background: #6C47B6;
+    }
+    .conversation-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      background: #faf7fc;
+    }
+    .conversation-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0e6f6;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.15s;
+    }
+    .conversation-item.active, .conversation-item:hover {
+      background: #ede6f7;
+    }
+    .conversation-address {
+      font-weight: 500;
+      color: #6C47B6;
+      font-size: 1rem;
+      word-break: break-all;
+    }
+    .conversation-preview {
+      color: #888;
+      font-size: 0.95rem;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+    .new-chat-btn {
+      margin: 16px 20px 12px 20px;
+      background: #fff;
+      color: #977DFF;
+      border: 1px solid #977DFF;
+      border-radius: 6px;
+      padding: 8px 0;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      width: calc(100% - 40px);
+    }
+    .new-chat-btn:hover {
+      background: #977DFF;
+      color: #fff;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      position: relative;
+    }
+    .chat-header {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      font-size: 1.1rem;
+      color: #6C47B6;
+      font-weight: 500;
+      justify-content: space-between;
+      z-index: 1;
+    }
+    .chat-header .status {
+      font-size: 0.95rem;
+      color: #888;
+      margin-left: 12px;
+    }
+    .chat-window {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 32px 24px 32px;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message-bubble {
+      max-width: 60%;
+      padding: 12px 18px;
+      border-radius: 18px;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 2px;
+      word-break: break-word;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(151,125,255,0.07);
+      display: inline-block;
+    }
+    .sent {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #977DFF 60%, #6C47B6 100%);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .received {
+      align-self: flex-start;
+      background: #fff;
+      color: #6C47B6;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #ede6f7;
+    }
+    .timestamp {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 2px;
+      margin-left: 4px;
+      display: inline-block;
+    }
+    .chat-input-container {
+      display: flex;
+      align-items: center;
+      padding: 18px 32px;
+      background: #fff;
+      border-top: 1px solid #eee;
+      gap: 12px;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #ede6f7;
+      font-size: 1.05rem;
+      outline: none;
+      background: #faf7fc;
+      color: #6C47B6;
+      transition: border 0.2s;
+    }
+    .chat-input:focus {
+      border: 1.5px solid #977DFF;
+    }
+    .send-btn {
+      background: #977DFF;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .send-btn:disabled {
+      background: #c7b6f7;
+      cursor: not-allowed;
+    }
+    .send-btn:not(:disabled):hover {
+      background: #6C47B6;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 32px 28px 24px 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 32px rgba(151,125,255,0.13);
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .modal-content label {
+      font-size: 1rem;
+      color: #6C47B6;
+      margin-bottom: 6px;
+    }
+    .modal-content input {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #ede6f7;
+      font-size: 1rem;
+      outline: none;
+      background: #faf7fc;
+      color: #6C47B6;
+      margin-bottom: 8px;
+    }
+    .modal-content button {
+      background: #977DFF;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 0;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .modal-content button:hover {
+      background: #6C47B6;
+    }
+    @media (max-width: 900px) {
+      .sidebar { width: 220px; }
+      .chat-header, .chat-input-container, .chat-window { padding-left: 12px; padding-right: 12px; }
+    }
+    @media (max-width: 600px) {
+      .app-container { flex-direction: column; }
+      .sidebar { width: 100vw; height: 220px; border-right: none; border-bottom: 1px solid #eee; }
+      .main { flex: 1; }
+      .chat-header, .chat-input-container, .chat-window { padding-left: 6px; padding-right: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        WEB3 M3SS3G3
+        <button id="connectBtn">Connect</button>
+      </div>
+      <button class="new-chat-btn" id="newChatBtn">+ New Chat</button>
+      <ul class="conversation-list" id="conversationList"></ul>
+    </aside>
+    <main class="main">
+      <div class="chat-header">
+        <span id="chatWith">Select a conversation</span>
+        <span class="status" id="walletStatus">Not connected</span>
+      </div>
+      <div class="chat-window" id="chatWindow">
+        <div style="color:#aaa;text-align:center;margin-top:40px;">No conversation selected.</div>
+      </div>
+      <form class="chat-input-container" id="chatInputForm" style="display:none;">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Type a message..." maxlength="256" autocomplete="off" required />
+        <button type="submit" class="send-btn" id="sendBtn">Send</button>
+      </form>
+    </main>
+  </div>
+  <div class="modal" id="newChatModal" style="display:none;">
+    <div class="modal-content">
+      <label for="recipientAddress">Enter recipient address:</label>
+      <input type="text" id="recipientAddress" placeholder="0x..." maxlength="42" />
+      <button id="startChatBtn">Start Chat</button>
+    </div>
+  </div>
+  <footer style="width:100%;text-align:center;padding:14px 0 10px 0;color:#6C47B6;font-size:1rem;background:rgba(255,255,255,0.7);border-top:1px solid #eee;position:fixed;bottom:0;left:0;z-index:100;">
+    Created by - 0x70ea12A4E1208FaDeb0B4722852325bB9Bc119c6
+  </footer>
+  <script>
+    // --- CONFIG ---
+    const CONTRACT_ADDRESS = '0x9f2031a740fC946Df3f154E47fef35D45c79e2E0'; // <-- Replace with your contract address
+    const CONTRACT_ABI = [
+      "function sendMessage(address recipient, string content)",
+      "function getMessages() view returns (tuple(address sender, address recipient, string content, uint256 timestamp)[])",
+      "function getMessagesByAddress(address user) view returns (tuple(address sender, address recipient, string content, uint256 timestamp)[])",
+      "function getMessagesBetweenAddresses(address user1, address user2) view returns (tuple(address sender, address recipient, string content, uint256 timestamp)[])",
+    ];
+    const SEPOLIA_CHAIN_ID = '0xaa36a7';
+    // --- STATE ---
+    let provider, signer, contract;
+    let userAddress = null;
+    let allMessages = [];
+    let conversations = [];
+    let selectedConversation = null;
+    let autoRefreshInterval = null;
+    // --- DOM ---
+    const connectBtn = document.getElementById('connectBtn');
+    const walletStatus = document.getElementById('walletStatus');
+    const conversationList = document.getElementById('conversationList');
+    const chatWindow = document.getElementById('chatWindow');
+    const chatWith = document.getElementById('chatWith');
+    const chatInputForm = document.getElementById('chatInputForm');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const newChatModal = document.getElementById('newChatModal');
+    const recipientAddressInput = document.getElementById('recipientAddress');
+    const startChatBtn = document.getElementById('startChatBtn');
+    // --- WALLET CONNECTION ---
+    async function connectWallet() {
+      if (!window.ethereum) {
+        alert('MetaMask is required!');
+        return;
+      }
+      try {
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: SEPOLIA_CHAIN_ID }] });
+      } catch (e) {
+        alert('Please switch to Sepolia testnet in MetaMask.');
+        return;
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAddress = ethers.utils.getAddress(accounts[0]);
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        walletStatus.textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+        connectBtn.textContent = 'Disconnect';
+        connectBtn.onclick = disconnectWallet;
+        fetchAndRenderAll();
+        if (!autoRefreshInterval) {
+          autoRefreshInterval = setInterval(fetchAndRenderAll, 8000);
+        }
+      } catch (err) {
+        alert('Wallet connection failed.');
+      }
+    }
+    function disconnectWallet() {
+      userAddress = null;
+      provider = signer = contract = null;
+      walletStatus.textContent = 'Not connected';
+      connectBtn.textContent = 'Connect';
+      connectBtn.onclick = connectWallet;
+      chatWith.textContent = 'Select a conversation';
+      chatWindow.innerHTML = '<div style="color:#aaa;text-align:center;margin-top:40px;">No conversation selected.</div>';
+      chatInputForm.style.display = 'none';
+      conversationList.innerHTML = '';
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      autoRefreshInterval = null;
+    }
+    connectBtn.onclick = connectWallet;
+    // --- NEW CHAT MODAL ---
+    newChatBtn.onclick = () => {
+      if (!userAddress) {
+        alert('Connect your wallet first!');
+        return;
+      }
+      recipientAddressInput.value = '';
+      newChatModal.style.display = 'flex';
+      recipientAddressInput.focus();
+    };
+    startChatBtn.onclick = () => {
+      const addr = recipientAddressInput.value.trim();
+      if (!ethers.utils.isAddress(addr)) {
+        alert('Invalid Ethereum address.');
+        return;
+      }
+      newChatModal.style.display = 'none';
+      openConversation(addr);
+    };
+    newChatModal.onclick = (e) => {
+      if (e.target === newChatModal) newChatModal.style.display = 'none';
+    };
+    // --- FETCH & RENDER ---
+    async function fetchAllMessages() {
+      if (!contract) return [];
+      try {
+        const msgs = await contract.getMessages();
+        return msgs.map(m => ({
+          sender: m.sender,
+          recipient: m.recipient,
+          content: m.content,
+          timestamp: Number(m.timestamp)
+        }));
+      } catch (e) {
+        return [];
+      }
+    }
+    function getConversationPartners(messages, userAddr) {
+      const partners = {};
+      messages.forEach(m => {
+        if (m.sender === userAddr) partners[m.recipient] = true;
+        if (m.recipient === userAddr) partners[m.sender] = true;
+      });
+      return Object.keys(partners);
+    }
+    function getMessagesBetween(user1, user2, messages) {
+      return messages.filter(m =>
+        (m.sender === user1 && m.recipient === user2) ||
+        (m.sender === user2 && m.recipient === user1)
+      ).sort((a, b) => a.timestamp - b.timestamp);
+    }
+    async function fetchAndRenderAll() {
+      if (!userAddress || !contract) return;
+      allMessages = await fetchAllMessages();
+      conversations = getConversationPartners(allMessages, userAddress);
+      renderConversationList();
+      if (selectedConversation) {
+        renderChat(selectedConversation);
+      }
+    }
+    // --- CONVERSATION LIST ---
+    function renderConversationList() {
+      conversationList.innerHTML = '';
+      if (conversations.length === 0) {
+        conversationList.innerHTML = '<li style="color:#aaa;padding:24px 0;text-align:center;">No conversations yet.</li>';
+        return;
+      }
+      conversations.forEach(addr => {
+        const msgs = getMessagesBetween(userAddress, addr, allMessages);
+        const lastMsg = msgs[msgs.length - 1];
+        const li = document.createElement('li');
+        li.className = 'conversation-item' + (selectedConversation === addr ? ' active' : '');
+        li.onclick = () => openConversation(addr);
+        li.innerHTML = `
+          <span class="conversation-address">${addr.slice(0, 6)}...${addr.slice(-4)}</span>
+          <span class="conversation-preview">${lastMsg ? (lastMsg.sender === userAddress ? 'You: ' : '') + escapeHTML(lastMsg.content).slice(0, 32) : 'No messages yet.'}</span>
+        `;
+        conversationList.appendChild(li);
+      });
+    }
+    // --- OPEN CONVERSATION ---
+    function openConversation(addr) {
+      selectedConversation = addr;
+      renderChat(addr);
+      renderConversationList();
+    }
+    // --- RENDER CHAT ---
+    function renderChat(addr) {
+      chatWith.textContent = addr.slice(0, 6) + '...' + addr.slice(-4);
+      chatInputForm.style.display = 'flex';
+      chatWindow.innerHTML = '';
+      const msgs = getMessagesBetween(userAddress, addr, allMessages);
+      if (msgs.length === 0) {
+        chatWindow.innerHTML = '<div style="color:#aaa;text-align:center;margin-top:40px;">No messages yet. Say hello!</div>';
+        return;
+      }
+      msgs.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'message-bubble ' + (m.sender === userAddress ? 'sent' : 'received');
+        div.innerHTML = `${escapeHTML(m.content)} <span class="timestamp">${formatTimestamp(m.timestamp)}</span>`;
+        chatWindow.appendChild(div);
+      });
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    // --- SEND MESSAGE ---
+    chatInputForm.onsubmit = async (e) => {
+      e.preventDefault();
+      if (!selectedConversation || !chatInput.value.trim()) return;
+      sendBtn.disabled = true;
+      try {
+        const tx = await contract.sendMessage(selectedConversation, chatInput.value.trim());
+        await tx.wait();
+        chatInput.value = '';
+        fetchAndRenderAll();
+      } catch (err) {
+        alert('Failed to send message.');
+      }
+      sendBtn.disabled = false;
+    };
+    // --- HELPERS ---
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, function(tag) {
+        const chars = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'};
+        return chars[tag] || tag;
+      });
+    }
+    function formatTimestamp(ts) {
+      const d = new Date(ts * 1000);
+      return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+    }
+    // --- INIT ---
+    if (window.ethereum && window.ethereum.selectedAddress) {
+      connectWallet();
+    }
+    // Auto-refresh on account/network change
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', () => { disconnectWallet(); });
+      window.ethereum.on('chainChanged', () => { disconnectWallet(); });
+    }
+  </script>
+</body>
+</html> 
