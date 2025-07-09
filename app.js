@@ -1,5 +1,5 @@
 // --- CONFIG ---
-const CONTRACT_ADDRESS = '0x9f2031a740fC946Df3f154E47fef35D45c79e2E0'; // <-- Replace with your contract address
+const CONTRACT_ADDRESS = '0x9f2031a740fC946Df3f154E47fef35D45c79e2E0'; 
 const CONTRACT_ABI = [
   "function sendMessage(address recipient, string content)",
   "function getMessages() view returns (tuple(address sender, address recipient, string content, uint256 timestamp)[])",
