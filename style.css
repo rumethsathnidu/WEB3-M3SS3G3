@@ -262,8 +262,18 @@ body {
 }
 
 .conversation-item, .conversation-item.active, .conversation-item:hover {
-  background: rgba(255,255,255,0.12) !important;
+  background: rgba(30, 30, 30, 0.32) !important;
   color: #fff !important;
+  border-bottom: 1px solid rgba(255,255,255,0.18) !important;
+}
+
+.conversation-address {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.conversation-preview {
+  color: #e0e0e0 !important;
 }
 
 .chat-input, .modal-content input {
